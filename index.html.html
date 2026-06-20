@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResearchFlow — AI Research Assistant</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --bg-card: #141416;
+    --bg-input: #1a1a1e;
+    --border: rgba(255,255,255,0.08);
+    --border-active: rgba(255,255,255,0.18);
+    --text: #f0efe8;
+    --text-muted: #888780;
+    --text-dim: #444441;
+    --accent: #1D9E75;
+    --accent-glow: rgba(29,158,117,0.15);
+    --accent-light: #5DCAA5;
+    --purple: #7F77DD;
+    --amber: #EF9F27;
+    --coral: #D85A30;
+    --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    padding: 1.5rem 2rem;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  header span {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-left: 4px;
+  }
+
+  .badge {
+    margin-left: auto;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    border: 0.5px solid var(--accent);
+    color: var(--accent-light);
+    letter-spacing: 0.04em;
+  }
+
+  /* Main layout */
+  main {
+    flex: 1;
+    max-width: 760px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+
+  /* Hero */
+  .hero {
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .hero h2 {
+    font-size: 32px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+
+  .hero h2 em {
+    font-style: normal;
+    color: var(--accent-light);
+  }
+
+  .hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* Input section */
+  .input-section {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .input-row input {
+    flex: 1;
+    background: var(--bg-input);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0 16px;
+    height: 48px;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .input-row input:focus {
+    border-color: var(--border-active);
+  }
+
+  .input-row input::placeholder { color: var(--text-dim); }
+
+  .btn-run {
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 0 20px;
+    height: 48px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-run:hover { opacity: 0.85; }
+  .btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .email-row input {
+    width: 100%;
+    background: var(--bg-input);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 0 16px;
+    height: 40px;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .email-row input:focus { border-color: var(--border-active); }
+  .email-row input::placeholder { color: var(--text-dim); }
+
+  .email-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  /* Suggestions */
+  .suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .chip {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 0.5px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    background: transparent;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .chip:hover {
+    border-color: var(--border-active);
+    color: var(--text);
+  }
+
+  /* Pipeline stages */
+  .pipeline {
+    margin-bottom: 2rem;
+    display: none;
+  }
+
+  .pipeline.visible { display: block; }
+
+  .pipeline-header {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .stage {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .stage.active {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+
+  .stage.done {
+    border-color: rgba(29,158,117,0.3);
+  }
+
+  .stage-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  .stage-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    display: block;
+  }
+
+  .stage.active .stage-name { color: var(--accent-light); }
+  .stage.done .stage-name { color: var(--text-muted); }
+
+  .stage-status {
+    font-size: 10px;
+    color: var(--text-dim);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .stage.active .stage-status { color: var(--accent); }
+  .stage.done .stage-status { color: var(--accent); }
+
+  /* Live log */
+  .log-box {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+
+  .log-line { margin-bottom: 2px; }
+  .log-line.active { color: var(--accent-light); }
+  .log-time { color: var(--text-dim); margin-right: 8px; }
+
+  /* Result */
+  .result-section {
+    display: none;
+  }
+
+  .result-section.visible { display: block; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .result-header h3 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 0.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+
+  .copy-btn:hover { color: var(--text); }
+
+  .result-box {
+    background: var(--bg-card);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    line-height: 1.8;
+    font-size: 14px;
+    white-space: pre-wrap;
+    color: var(--text);
+  }
+
+  .result-box h1, .result-box h2, .result-box h3 {
+    color: var(--text);
+    font-weight: 500;
+    margin: 1rem 0 0.4rem;
+  }
+
+  /* Footer bar */
+  .footer-bar {
+    padding: 1rem 2rem;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .footer-bar a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  .footer-bar a:hover { color: var(--text-muted); }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    display: inline-block;
+  }
+
+  /* Spinner */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+
+  /* Error */
+  .error-msg {
+    background: rgba(211,90,48,0.1);
+    border: 0.5px solid rgba(211,90,48,0.3);
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 13px;
+    color: #F0997B;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .error-msg.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/></svg>
+  </div>
+  <h1>ResearchFlow <span>by Abdallah</span></h1>
+  <div class="badge">MULTI-AGENT · ADK</div>
+</header>
+
+<main>
+  <div class="hero">
+    <h2>Research anything,<br><em>automatically.</em></h2>
+    <p>Type a topic. Four specialized AI agents plan, search,<br>synthesize, and deliver a full report to your inbox.</p>
+  </div>
+
+  <div class="input-section">
+    <div class="input-row">
+      <input type="text" id="topic" placeholder="Enter a research topic..." autocomplete="off" />
+      <button class="btn-run" id="run-btn" onclick="startResearch()">
+        <span id="btn-text">Research</span>
+        <span id="btn-icon">→</span>
+      </button>
+    </div>
+    <div class="email-row">
+      <span class="email-label">Deliver report to (optional)</span>
+      <input type="email" id="email" placeholder="your@email.com" />
+    </div>
+    <div class="suggestions">
+      <button class="chip" onclick="setTopic(this)">AI trends in robotics 2026</button>
+      <button class="chip" onclick="setTopic(this)">Climate tech startups funding</button>
+      <button class="chip" onclick="setTopic(this)">LLM fine-tuning best practices</button>
+      <button class="chip" onclick="setTopic(this)">Remote work productivity research</button>
+    </div>
+  </div>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <div class="pipeline" id="pipeline">
+    <div class="pipeline-header">Agent pipeline</div>
+    <div class="stages">
+      <div class="stage" id="stage-Planning">
+        <span class="stage-icon">🧠</span>
+        <span class="stage-name">Planner</span>
+        <span class="stage-status" id="status-Planning">waiting</span>
+      </div>
+      <div class="stage" id="stage-Searching">
+        <span class="stage-icon">🔍</span>
+        <span class="stage-name">Searcher</span>
+        <span class="stage-status" id="status-Searching">waiting</span>
+      </div>
+      <div class="stage" id="stage-Synthesizing">
+        <span class="stage-icon">📝</span>
+        <span class="stage-name">Synthesizer</span>
+        <span class="stage-status" id="status-Synthesizing">waiting</span>
+      </div>
+      <div class="stage" id="stage-Delivering">
+        <span class="stage-icon">📧</span>
+        <span class="stage-name">Delivery</span>
+        <span class="stage-status" id="status-Delivering">waiting</span>
+      </div>
+    </div>
+    <div class="log-box" id="log-box"></div>
+  </div>
+
+  <div class="result-section" id="result-section">
+    <div class="result-header">
+      <h3>Research Report</h3>
+      <button class="copy-btn" onclick="copyReport()">Copy report</button>
+    </div>
+    <div class="result-box" id="result-box"></div>
+  </div>
+</main>
+
+<footer class="footer-bar">
+  <span>ResearchFlow</span>
+  <span class="dot"></span>
+  <span>Kaggle AI Agents Capstone 2026</span>
+  <span class="dot"></span>
+  <a href="https://github.com/aboudrari/researchflow" target="_blank">GitHub</a>
+  <span class="dot"></span>
+  <span>Powered by Google ADK + Gemini</span>
+</footer>
+
+<script>
+const API_BASE = 'http://localhost:8000';
+let finalReport = '';
+
+function setTopic(el) {
+  document.getElementById('topic').value = el.textContent;
+  document.getElementById('topic').focus();
+}
+
+function log(msg, active = false) {
+  const box = document.getElementById('log-box');
+  const now = new Date().toLocaleTimeString('en-US', { hour12: false });
+  const line = document.createElement('div');
+  line.className = 'log-line' + (active ? ' active' : '');
+  line.innerHTML = `<span class="log-time">${now}</span>${msg}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+
+function setStage(stageName, status) {
+  const el = document.getElementById('stage-' + stageName);
+  const statusEl = document.getElementById('status-' + stageName);
+  if (!el) return;
+
+  el.className = 'stage';
+  if (status === 'running') {
+    el.classList.add('active');
+    statusEl.textContent = 'running...';
+  } else if (status === 'done') {
+    el.classList.add('done');
+    statusEl.textContent = 'done ✓';
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('visible');
+}
+
+function resetUI() {
+  document.getElementById('pipeline').classList.add('visible');
+  document.getElementById('result-section').classList.remove('visible');
+  document.getElementById('error-msg').classList.remove('visible');
+  document.getElementById('log-box').innerHTML = '';
+  document.getElementById('result-box').textContent = '';
+  finalReport = '';
+
+  ['Planning','Searching','Synthesizing','Delivering'].forEach(s => {
+    const el = document.getElementById('stage-' + s);
+    el.className = 'stage';
+    document.getElementById('status-' + s).textContent = 'waiting';
+  });
+}
+
+async function startResearch() {
+  const topic = document.getElementById('topic').value.trim();
+  const email = document.getElementById('email').value.trim();
+
+  if (!topic) {
+    document.getElementById('topic').focus();
+    return;
+  }
+
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  document.getElementById('btn-text').textContent = 'Running';
+  document.getElementById('btn-icon').innerHTML = '<span class="spinner"></span>';
+
+  resetUI();
+  log(`Starting research: "${topic}"`, true);
+
+  try {
+    const res = await fetch(`${API_BASE}/research`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, email: email || null }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Server error');
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let currentStage = null;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const event = JSON.parse(line.slice(6));
+
+          if (event.stage === 'start') {
+            log(event.content, true);
+
+          } else if (event.status === 'running') {
+            if (event.stage !== currentStage) {
+              currentStage = event.stage;
+              setStage(event.stage, 'running');
+              log(event.content, true);
+            }
+
+          } else if (event.status === 'streaming') {
+            // Accumulate streaming content silently
+
+          } else if (event.stage === 'complete') {
+            finalReport = event.content;
+            ['Planning','Searching','Synthesizing','Delivering'].forEach(s => setStage(s, 'done'));
+            log('Research complete!', true);
+            showReport(finalReport);
+
+          } else if (event.stage === 'error') {
+            showError(event.content);
+            log('Error: ' + event.content);
+          }
+        } catch(e) { /* skip malformed event */ }
+      }
+    }
+  } catch(e) {
+    showError(e.message || 'Connection failed. Is the server running?');
+    log('Failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('btn-text').textContent = 'Research';
+    document.getElementById('btn-icon').textContent = '→';
+  }
+}
+
+function showReport(text) {
+  const box = document.getElementById('result-box');
+  // Basic markdown → HTML (headers + bold)
+  const html = text
+    .replace(/^# (.+)$/gm, '<h2 style="font-size:18px;margin:0 0 0.5rem;color:var(--text)">$1</h2>')
+    .replace(/^## (.+)$/gm, '<h3 style="font-size:15px;margin:1.2rem 0 0.3rem;color:var(--text)">$1</h3>')
+    .replace(/^### (.+)$/gm, '<h4 style="font-size:13px;margin:0.8rem 0 0.2rem;color:var(--text-muted)">$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '<li style="margin-left:1.2rem;margin-bottom:2px">$1</li>')
+    .replace(/\n/g, '<br>');
+  box.innerHTML = html;
+  document.getElementById('result-section').classList.add('visible');
+}
+
+function copyReport() {
+  navigator.clipboard.writeText(finalReport).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy report', 2000);
+  });
+}
+
+// Enter key to submit
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('topic').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startResearch();
+  });
+});
+</script>
+</body>
+</html>

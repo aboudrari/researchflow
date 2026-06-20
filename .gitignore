@@ -1,0 +1,5 @@
+﻿.env
+__pycache__/
+agent/__pycache__/
+*.pyc
+index.html.html

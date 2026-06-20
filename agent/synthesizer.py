@@ -1,4 +1,4 @@
-﻿from google.adk.agents import LlmAgent
+from google.adk.agents import LlmAgent
 
 SYNTHESIZER_PROMPT = '''You are a research analyst and expert writer. You will receive raw search findings
 organized by sub-questions. Synthesize this into a polished, insightful research report.
@@ -32,7 +32,7 @@ Rules:
 
 synthesizer_agent = LlmAgent(
     name='synthesizer_agent',
-    model='gemini-2.0-flash',
+    model='gemini-2.0-flash-lite',
     description='Synthesizes raw search findings into a clean structured research report.',
     instruction=SYNTHESIZER_PROMPT,
 )

@@ -1,4 +1,4 @@
-﻿from google.adk.agents import LlmAgent
+from google.adk.agents import LlmAgent
 
 DELIVERY_PROMPT = '''You are a delivery specialist. You will receive a research report in markdown format.
 
@@ -30,7 +30,7 @@ Rules:
 
 delivery_agent = LlmAgent(
     name='delivery_agent',
-    model='gemini-2.0-flash',
+    model='gemini-2.0-flash-lite',
     description='Formats the research report as an email and prepares it for delivery.',
     instruction=DELIVERY_PROMPT,
 )

@@ -1,4 +1,4 @@
-﻿from google.adk.agents import LlmAgent
+from google.adk.agents import LlmAgent
 
 PLANNER_PROMPT = '''You are a research planning expert. Take a broad research topic
 and break it down into exactly 3 to 5 focused, specific sub-questions that together
@@ -13,7 +13,7 @@ Rules:
 
 planner_agent = LlmAgent(
     name='planner_agent',
-    model='gemini-2.0-flash',
+    model='gemini-2.0-flash-lite',
     description='Breaks a research topic into 3-5 specific sub-questions for targeted research.',
     instruction=PLANNER_PROMPT,
 )
