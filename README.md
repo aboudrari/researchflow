@@ -1,5 +1,3 @@
-[Uploading README.md…]()
-
 # ResearchFlow 🔬
 ### Multi-Agent AI Research Assistant — Kaggle AI Agents Capstone 2026
 
